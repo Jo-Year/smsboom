@@ -1,0 +1,52 @@
+<include file="Public/header" />
+<fieldset class="layui-elem-field layui-field-title"><legend>短信测试pro max版</legend></fieldset>
+<div class="info-card layui-card layui-card-body">
+  <table class="layui-table">
+    <tr><td style="width:120px;">网址</td><td><a href="//smsbb.top/">smsbb.top</a></td></tr>
+    <tr><td>联系</td><td>joyear08@gmail.com</td></tr>
+  </table>
+</div>
+<fieldset class="layui-elem-field layui-field-title"><legend>我的信息</legend></fieldset>
+<div class="info-card layui-card layui-card-body">
+  <table class="layui-table">
+    <tr><td style="width:120px;">邮箱</td><td><{$loginUser.email}></td></tr>
+    <tr><td>会员状态</td><td><{:$is_member}>（<{$loginUser.end_time|default='未开通'}>）</td></tr>
+    <tr><td>注册时间</td><td><{$loginUser.add_time}></td></tr>
+    <tr><td>到期时间</td><td id="endTime"><{$loginUser.end_time|default='未开通'}></td></tr>
+    <tr><td>进程</td><td>
+      <if condition="$loginUser.process eq 5">进程5
+      <elseif condition="$loginUser.process eq 3"/>进程3
+      <elseif condition="$loginUser.process eq 1"/>进程1
+      <else/>未开通
+      </if>
+    </td></tr>
+  </table>
+</div>
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top:20px;"><legend>最近登录记录</legend></fieldset>
+<table class="layui-table" style="max-width:600px;">
+  <thead><tr><th>#</th><th>IP</th><th>登录时间</th></tr></thead>
+  <tbody>
+  <volist name="logs" id="log" key="k">
+    <tr><td><{$k}></td><td><{$log.ip}></td><td><{$log.add_time}></td></tr>
+  </volist>
+  <empty name="logs"><tr><td colspan="3" style="text-align:center;color:#999;">暂无登录记录</td></tr></empty>
+  </tbody>
+</table>
+
+<script>
+layui.use(['layer'], function(){
+  var $ = layui.$, layer = layui.layer;
+  // 每10秒轮询 session 一致性
+  setInterval(function(){
+    $.post('<{:U("Home/Index/poll")}>', function(res){
+      if(res.kick){
+        layer.alert(res.msg, {icon:7, title:'登录失效'}, function(){
+          location.href = '<{:U("Home/Login/index")}>?show=1';
+        });
+      }
+    }, 'json');
+  }, 10000);
+});
+</script>
+<include file="Public/footer" />

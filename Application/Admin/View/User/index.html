@@ -1,0 +1,151 @@
+<include file="Public/header" />
+<fieldset class="layui-elem-field layui-field-title"><legend>用户列表</legend></fieldset>
+
+<!-- tab 切换 -->
+<div class="layui-tab layui-tab-brief" lay-filter="userTab">
+  <ul class="layui-tab-title">
+    <li class="layui-this" data-tab="all">全部</li>
+    <li data-tab="member">会员</li>
+    <li data-tab="nomember">非会员</li>
+  </ul>
+</div>
+
+<!-- 搜索栏 -->
+<div class="search-bar">
+  <select id="searchField" class="layui-input" style="width:120px;">
+    <option value="id">用户编号</option>
+    <option value="email">邮箱</option>
+  </select>
+  <input id="searchVal" class="layui-input" placeholder="请输入搜索内容">
+  <button class="layui-btn" id="searchBtn"><i class="layui-icon layui-icon-search"></i> 搜索</button>
+</div>
+
+<table id="userTable" lay-filter="userTable"></table>
+
+<!-- 操作列模板 -->
+<script type="text/html" id="barEdit">
+  <button class="layui-btn layui-btn-sm" lay-event="edit">修改</button>
+</script>
+
+<!-- 修改弹窗模板 -->
+<script type="text/html" id="editTpl">
+  <form class="layui-form" style="padding:20px 20px 0 0;">
+    <input type="hidden" id="eid" value="{{d.id}}">
+    <div class="layui-form-item">
+      <label class="layui-form-label">邮箱</label>
+      <div class="layui-input-block"><input id="eemail" class="layui-input" value="{{d.email}}"></div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">新密码</label>
+      <div class="layui-input-block"><input id="epwd" type="password" class="layui-input" placeholder="留空不修改"></div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">到期时间</label>
+      <div class="layui-input-block"><input id="eend" class="layui-input" value="{{d.end_time}}"></div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">进程</label>
+      <div class="layui-input-block">
+        <select id="eprocess">
+          <option value="0">未开通</option>
+          <option value="1">进程1</option>
+          <option value="3">进程3</option>
+          <option value="5">进程5</option>
+        </select>
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <div class="layui-input-block"><button type="button" class="layui-btn" id="eSave">保存</button></div>
+    </div>
+  </form>
+</script>
+
+<script>
+layui.use(['table','element','layer','laydate','form'], function(){
+  var $ = layui.$, table = layui.table, element = layui.element, layer = layui.layer, laydate = layui.laydate, form = layui.form;
+
+  var curTab = 'all';
+
+  table.render({
+    elem: '#userTable',
+    url: '<{:U("Admin/User/getList")}>',
+    method: 'post',
+    where: {tab: curTab, searchField: '', searchVal: ''},
+    page: true,
+    limit: 50,
+    limits: [50],
+    initSort: {field: 'id', type: 'desc'},
+    cols: [[
+      {field:'id', title:'ID', width:80, sort:true},
+      {field:'email', title:'邮箱'},
+      {field:'add_time', title:'注册时间', sort:true},
+      {field:'end_time_show', title:'会员到期', sort:true},
+      {field:'process_show', title:'进程', width:100},
+      {field:'is_member', title:'状态', width:100},
+      {fixed:'right', title:'操作', toolbar:'#barEdit', width:100}
+    ]]
+  });
+
+  // tab 切换
+  element.on('tab(userTab)', function(){
+    curTab = $(this).attr('data-tab');
+    reloadTable();
+  });
+  // 搜索
+  $('#searchBtn').on('click', function(){ reloadTable(); });
+  $('#searchVal').on('keydown', function(e){ if(e.keyCode===13) reloadTable(); });
+
+  function reloadTable(){
+    table.reload('userTable', {
+      where: {tab: curTab, searchField: $('#searchField').val(), searchVal: $('#searchVal').val()},
+      page: {curr: 1}
+    });
+  }
+  // 排序
+  table.on('sort(userTable)', function(obj){
+    table.reload('userTable', {
+      initSort: obj,
+      where: {sortField: obj.field, sortType: obj.type}
+    });
+  });
+  // 修改弹窗
+  table.on('tool(userTable)', function(obj){
+    if(obj.event === 'edit'){
+      var d = obj.data;
+      layer.open({
+        type: 1, title: '修改用户 #' + d.id, area: ['92%','auto'],
+        content: laytplTpl(d),
+        success: function(layero){
+          // 内容超高时弹窗内部可滚动，避免手机端保存按钮被挤出屏幕
+          layero.find('.layui-layer-content').css({
+            'max-height': ($(window).height() * 0.75) + 'px',
+            'overflow-y': 'auto'
+          });
+        }
+      });
+      laydate.render({elem: '#eend', type: 'datetime'});
+      $('#eprocess').val(d.process || 0);
+      form.render('select'); // 动态插入的下拉框需要 layui 渲染才会显示
+      $('#eSave').on('click', function(){
+        var load = layer.load(2);
+        $.post('<{:U("Admin/User/edit")}>', {
+          id: $('#eid').val(), email: $('#eemail').val(), pwd: $('#epwd').val(), end_time: $('#eend').val(), process: $('#eprocess').val()
+        }, function(res){
+          layer.close(load);
+          layer.msg(res.msg, {icon: res.code===0?1:2});
+          if(res.code===0){ layer.closeAll(); table.reload('userTable'); }
+        }, 'json');
+      });
+    }
+  });
+
+  // 简单模板渲染（避免 laytpl 与 TP 定界符冲突）
+  function laytplTpl(d){
+    return $('#editTpl').html()
+      .replace(/\{\{d\.id\}\}/g, d.id)
+      .replace(/\{\{d\.email\}\}/g, d.email)
+      .replace(/\{\{d\.end_time\}\}/g, d.end_time||'');
+  }
+});
+</script>
+<include file="Public/footer" />

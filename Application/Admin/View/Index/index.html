@@ -1,0 +1,62 @@
+<include file="Public/header" />
+<fieldset class="layui-elem-field layui-field-title"><legend>短信测试pro max版</legend></fieldset>
+<div class="info-card layui-card layui-card-body">
+  <table class="layui-table">
+    <tr><td style="width:120px;">网址</td><td><a href="//smsbb.top/">smsbb.top</a></td></tr>
+    <tr><td>联系</td><td>joyear08@gmail.com</td></tr>
+  </table>
+</div>
+<fieldset class="layui-elem-field layui-field-title">
+  <legend>系统信息修改</legend>
+</fieldset>
+<form class="layui-form" style="max-width:500px;">
+  <div class="layui-form-item">
+    <label class="layui-form-label">网站名称</label>
+    <div class="layui-input-block">
+      <input class="layui-input" name="web_name" value="<{$web_name}>">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">管理员账号</label>
+    <div class="layui-input-block">
+      <input class="layui-input" name="admin_name" value="<{$admin_name}>">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">新密码</label>
+    <div class="layui-input-block">
+      <input type="password" class="layui-input" name="admin_pwd" placeholder="留空则不修改">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">管理员邮箱</label>
+    <div class="layui-input-block">
+      <input class="layui-input" name="admin_email" value="<{$admin_email}>">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn" id="saveBtn">保存修改</button>
+    </div>
+  </div>
+</form>
+<script>
+layui.use(['layer','form'], function(){
+  var $ = layui.$, layer = layui.layer;
+  $('#saveBtn').on('click', function(e){
+    e.preventDefault();
+    var load = layer.load(2);
+    $.post('<{:U("Admin/Index/save")}>', {
+      web_name: $('input[name=web_name]').val(),
+      admin_name: $('input[name=admin_name]').val(),
+      admin_pwd: $('input[name=admin_pwd]').val(),
+      admin_email: $('input[name=admin_email]').val()
+    }, function(res){
+      layer.close(load);
+      layer.msg(res.msg, {icon: res.code===0?1:2});
+      if(res.code===0 && res.relogin){ setTimeout(function(){ location.href = res.url; }, 1000); }
+    }, 'json');
+  });
+});
+</script>
+<include file="Public/footer" />

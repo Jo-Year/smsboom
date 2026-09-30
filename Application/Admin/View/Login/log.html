@@ -1,0 +1,62 @@
+<include file="Public/header" />
+<fieldset class="layui-elem-field layui-field-title"><legend>登录记录</legend></fieldset>
+
+<div class="search-bar">
+  <input id="searchVal" class="layui-input" style="width:220px;" placeholder="输入用户编号(uid)搜索">
+  <button class="layui-btn" id="searchBtn"><i class="layui-icon layui-icon-search"></i> 搜索</button>
+</div>
+
+<table id="logTable" lay-filter="logTable"></table>
+
+<script type="text/html" id="barDel">
+  <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del">删除</button>
+</script>
+
+<script>
+layui.use(['table','layer'], function(){
+  var $ = layui.$, table = layui.table, layer = layui.layer;
+
+  table.render({
+    elem: '#logTable',
+    url: '<{:U("Admin/Login/getLogList")}>',
+    method: 'post',
+    where: {searchVal: ''},
+    page: true,
+    limit: 50,
+    limits: [50],
+    initSort: {field: 'add_time', type: 'desc'},
+    cols: [[
+      {field:'id', title:'ID', width:80, sort:true},
+      {field:'uid', title:'用户编号', width:120},
+      {field:'ip', title:'IP', width:160},
+      {field:'add_time', title:'登录时间', minWidth:180, sort:true},
+      {fixed:'right', title:'操作', toolbar:'#barDel', width:100}
+    ]]
+  });
+
+  // 搜索
+  $('#searchBtn').on('click', reloadTable);
+  $('#searchVal').on('keydown', function(e){ if(e.keyCode===13) reloadTable(); });
+  function reloadTable(){
+    table.reload('logTable', {where:{searchVal:$('#searchVal').val()}, page:{curr:1}});
+  }
+  // 排序
+  table.on('sort(logTable)', function(obj){
+    table.reload('logTable', {initSort: obj, where:{sortField:obj.field, sortType:obj.type}});
+  });
+  // 删除
+  table.on('tool(logTable)', function(obj){
+    if(obj.event === 'del'){
+      layer.confirm('确定删除该条登录记录？', {icon:3, title:'确认'}, function(idx){
+        var load = layer.load(2);
+        $.post('<{:U("Admin/Login/delLog")}>', {id: obj.data.id}, function(res){
+          layer.close(load); layer.close(idx);
+          layer.msg(res.msg, {icon: res.code===0?1:2});
+          if(res.code===0) obj.del();
+        }, 'json');
+      });
+    }
+  });
+});
+</script>
+<include file="Public/footer" />

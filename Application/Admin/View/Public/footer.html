@@ -1,0 +1,27 @@
+    </div><!-- /.page-box -->
+  </div><!-- /.layui-body -->
+</div><!-- /.layui-layout -->
+<script>
+layui.use(['element','layer'], function(){
+  var $ = layui.$;
+  if($('.site-mask').length===0){ $('body').append('<div class="site-mask"></div>'); }
+  var $side = $('.layui-side'), $mask = $('.site-mask');
+  function openNav(){ $side.addClass('nav-open'); $mask.addClass('show'); }
+  function closeNav(){ $side.removeClass('nav-open'); $mask.removeClass('show'); }
+  $('#menuToggle').on('click', function(){
+    if ($(window).width() <= 768) {
+      // 手机端：抽屉
+      if ($side.hasClass('nav-open')) closeNav(); else openNav();
+    } else {
+      // 桌面端：折叠/展开侧边栏
+      $('body').toggleClass('side-mini');
+    }
+  });
+  $mask.on('click', closeNav);
+  $(window).on('resize', function(){
+    if ($(window).width() > 768) closeNav();
+  });
+});
+</script>
+</body>
+</html>

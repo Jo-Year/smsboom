@@ -1,0 +1,30 @@
+<include file="Public/header" />
+<fieldset class="layui-elem-field layui-field-title"><legend>修改资料</legend></fieldset>
+<form style="max-width:450px;">
+  <div class="layui-form-item">
+    <label class="layui-form-label">邮箱</label>
+    <div class="layui-input-block"><input class="layui-input" id="email" value="<{$loginUser.email}>"></div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">新密码</label>
+    <div class="layui-input-block"><input type="password" class="layui-input" id="pwd" placeholder="留空不修改，8-16位不含中文空格"></div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block"><button class="layui-btn" id="saveBtn">保存并重新登录</button></div>
+  </div>
+</form>
+<script>
+layui.use(['layer'], function(){
+  var $ = layui.$, layer = layui.layer;
+  $('#saveBtn').on('click', function(e){
+    e.preventDefault();
+    var load = layer.load(2);
+    $.post('<{:U("Home/Info/save")}>', {email: $('#email').val(), pwd: $('#pwd').val()}, function(res){
+      layer.close(load);
+      layer.msg(res.msg, {icon: res.code===0?1:2});
+      if(res.code===0){ setTimeout(function(){ location.href = res.url; }, 1000); }
+    }, 'json');
+  });
+});
+</script>
+<include file="Public/footer" />

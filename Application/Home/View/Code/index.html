@@ -1,0 +1,32 @@
+<include file="Public/header" />
+<fieldset class="layui-elem-field layui-field-title"><legend>卡密续费</legend></fieldset>
+<form style="max-width:450px;">
+  <div class="layui-form-item">
+    <label class="layui-form-label">卡密</label>
+    <div class="layui-input-block"><input class="layui-input" id="code" placeholder="请输入16位卡密"></div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block"><button class="layui-btn" id="renewBtn">立即续费</button></div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block" style="color:#999;font-size:12px;">
+      10分钟卡 = 加10分钟；月卡 = 加1个月；年卡 = 加1年
+    </div>
+  </div>
+</form>
+<script>
+layui.use(['layer'], function(){
+  var $ = layui.$, layer = layui.layer;
+  $('#renewBtn').on('click', function(e){
+    e.preventDefault();
+    var load = layer.load(2);
+    $.post('<{:U("Home/Code/renew")}>', {code: $('#code').val()}, function(res){
+      layer.close(load);
+      if(res.code===0){
+        layer.alert(res.msg, {icon:1}, function(){ location.reload(); });
+      } else { layer.msg(res.msg, {icon:2}); }
+    }, 'json');
+  });
+});
+</script>
+<include file="Public/footer" />

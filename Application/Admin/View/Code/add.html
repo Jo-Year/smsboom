@@ -1,0 +1,58 @@
+<include file="Public/header" />
+<fieldset class="layui-elem-field layui-field-title"><legend>生成卡密</legend></fieldset>
+
+<form class="layui-form" style="max-width:500px;">
+  <div class="layui-form-item">
+    <label class="layui-form-label">卡密类型</label>
+    <div class="layui-input-block">
+      <select id="ctype">
+        <option value="1">10分钟卡</option>
+        <option value="2">月卡</option>
+        <option value="3">年卡</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">生成数量</label>
+    <div class="layui-input-block">
+      <input id="cnum" class="layui-input" type="number" value="1" min="1" max="1000">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn" id="genBtn">立即生成</button>
+    </div>
+  </div>
+</form>
+
+<div id="resultBox" style="display:none;max-width:500px;">
+  <blockquote class="layui-elem-quote">生成成功，共 <span id="genCount"></span> 个卡密：
+    <button class="layui-btn layui-btn-sm layui-btn-normal" id="copyAll" style="float:right;">一键复制全部</button>
+  </blockquote>
+  <textarea id="codeResult" class="layui-textarea" style="height:300px;"></textarea>
+</div>
+
+<script>
+layui.use(['layer','form'], function(){
+  var $ = layui.$, layer = layui.layer;
+  $('#genBtn').on('click', function(e){
+    e.preventDefault();
+    var load = layer.load(2);
+    $.post('<{:U("Admin/Code/generate")}>', {type: $('#ctype').val(), num: $('#cnum').val()}, function(res){
+      layer.close(load);
+      if(res.code === 0){
+        $('#codeResult').val(res.data.join('\n'));
+        $('#genCount').text(res.data.length);
+        $('#resultBox').show();
+        layer.msg(res.msg, {icon:1});
+      } else { layer.msg(res.msg, {icon:2}); }
+    }, 'json');
+  });
+  $('#copyAll').on('click', function(){
+    var ta = document.getElementById('codeResult');
+    ta.select(); document.execCommand('copy');
+    layer.msg('已复制到剪贴板', {icon:1});
+  });
+});
+</script>
+<include file="Public/footer" />

@@ -1,0 +1,105 @@
+<include file="Public/header" />
+<fieldset class="layui-elem-field layui-field-title">
+  <legend>卡密列表</legend>
+  <button class="layui-btn layui-btn-sm layui-btn-normal" id="copyPage" style="float:right;margin-top:8px;">复制当页所有卡密</button>
+</fieldset>
+
+<div class="layui-tab layui-tab-brief" lay-filter="codeTab">
+  <ul class="layui-tab-title">
+    <li data-tab="all">全部</li>
+    <li data-tab="used">已使用</li>
+    <li class="layui-this" data-tab="unused">未使用</li>
+  </ul>
+</div>
+
+<div class="search-bar">
+  <select id="searchField" class="layui-input" style="width:140px;">
+    <option value="uid">用户编号</option>
+    <option value="type">类型</option>
+    <option value="key">卡密</option>
+  </select>
+  <input id="searchVal" class="layui-input" placeholder="请输入搜索内容">
+  <button class="layui-btn" id="searchBtn"><i class="layui-icon layui-icon-search"></i> 搜索</button>
+  <button class="layui-btn layui-btn-danger" id="batchDel"><i class="layui-icon layui-icon-delete"></i> 批量删除</button>
+</div>
+
+<table id="codeTable" lay-filter="codeTable"></table>
+
+<script type="text/html" id="barDel">
+  <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="del">删除</button>
+</script>
+
+<script>
+layui.use(['table','element','layer'], function(){
+  var $ = layui.$, table = layui.table, element = layui.element, layer = layui.layer;
+  var curTab = 'unused', pageData = [];
+
+  table.render({
+    elem: '#codeTable',
+    url: '<{:U("Admin/Code/getList")}>',
+    method: 'post',
+    where: {tab: curTab, searchField: '', searchVal: ''},
+    page: true, limit: 50, limits: [50],
+    initSort: {field: 'id', type: 'desc'},
+    cols: [[
+      {type:'checkbox', fixed:'left'},
+      {field:'id', title:'ID', width:80, sort:true},
+      {field:'key', title:'卡密'},
+      {field:'type_show', title:'类型', width:120, sort:true},
+      {field:'uid', title:'用户编号', width:100},
+      {field:'add_time', title:'生成时间', width:160},
+      {field:'use_time_show', title:'使用时间', width:160, sort:true},
+      {fixed:'right', title:'操作', toolbar:'#barDel', width:100}
+    ]],
+    done: function(res){ pageData = res.data; }
+  });
+
+  element.on('tab(codeTab)', function(){
+    curTab = $(this).attr('data-tab'); reloadTable();
+  });
+  $('#searchBtn').on('click', reloadTable);
+  $('#searchVal').on('keydown', function(e){ if(e.keyCode===13) reloadTable(); });
+  function reloadTable(){
+    table.reload('codeTable', {where:{tab:curTab,searchField:$('#searchField').val(),searchVal:$('#searchVal').val()}, page:{curr:1}});
+  }
+  table.on('sort(codeTable)', function(obj){
+    table.reload('codeTable', {initSort: obj, where:{sortField:obj.field, sortType:obj.type}});
+  });
+  // 删除确认
+  table.on('tool(codeTable)', function(obj){
+    if(obj.event === 'del'){
+      layer.confirm('确定删除该卡密？', {icon:3, title:'确认'}, function(idx){
+        var load = layer.load(2);
+        $.post('<{:U("Admin/Code/del")}>', {id: obj.data.id}, function(res){
+          layer.close(load); layer.close(idx);
+          layer.msg(res.msg, {icon: res.code===0?1:2});
+          if(res.code===0) obj.del();
+        }, 'json');
+      });
+    }
+  });
+  // 批量删除
+  $('#batchDel').on('click', function(){
+    var checked = table.checkStatus('codeTable').data;
+    if(!checked.length){ layer.msg('请先勾选要删除的卡密', {icon:2}); return; }
+    layer.confirm('确定删除选中的 ' + checked.length + ' 个卡密？', {icon:3, title:'批量确认'}, function(idx){
+      var load = layer.load(2);
+      var ids = checked.map(function(r){ return r.id; });
+      $.post('<{:U("Admin/Code/del")}>', {ids: ids}, function(res){
+        layer.close(load); layer.close(idx);
+        layer.msg(res.msg, {icon: res.code===0?1:2});
+        if(res.code===0) table.reload('codeTable');
+      }, 'json');
+    });
+  });
+  // 复制当页
+  $('#copyPage').on('click', function(){
+    if(!pageData.length){ layer.msg('当前页无数据', {icon:2}); return; }
+    var text = pageData.map(function(r){ return r.key; }).join('\n');
+    var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    layer.msg('已复制当页 ' + pageData.length + ' 个卡密', {icon:1});
+  });
+});
+</script>
+<include file="Public/footer" />

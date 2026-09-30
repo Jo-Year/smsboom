@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><{$web_name}></title>
+<script src="https://cdn.staticfile.org/layui/2.9.17/layui.js"></script>
+<link rel="stylesheet" href="https://cdn.staticfile.org/layui/2.9.17/css/layui.css">
+<style>
+  body{margin:0;}
+  .layui-layout-admin .layui-logo{color:#fff;font-size:16px;font-weight:600;}
+  .layui-body{bottom:0;}
+  .page-box{padding:20px;}
+  .info-card{max-width:600px;}
+  /* 遮罩 */
+  .site-mask{display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:999;}
+  /* 手机端：侧边栏默认隐藏为抽屉，主内容占满全屏 */
+  @media screen and (max-width:768px){
+    .layui-side{left:-260px;transition:all .3s;z-index:1001;box-shadow:2px 0 8px rgba(0,0,0,.3);}
+    .layui-side.nav-open{left:0;}
+    .layui-body{left:0 !important;}
+    .page-box{padding:10px;}
+    .site-mask.show{display:block;}
+    /* 表格/卡片横向不溢出，需要时内部滚动 */
+    .page-box .layui-table{min-width:480px;}
+    .page-box{overflow-x:auto;}
+    /* 汉堡按钮固定左上角，避免和右上角用户名挤在一起 */
+    .layui-header .layui-nav.layui-layout-left{position:absolute;left:10px;top:0;float:none;}
+    .layui-header .layui-layout-right{padding-right:10px;}
+  }
+  /* 桌面端：汉堡按钮折叠/展开侧边栏 */
+  @media screen and (min-width:769px){
+    .layui-side{transition:all .3s ease;}
+    body.side-mini .layui-side{left:-260px;}
+    body.side-mini .layui-body{left:0 !important;}
+  }
+</style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+  <div class="layui-header">
+    <div class="layui-logo layui-hide-xs"><{$web_name}></div>
+    <ul class="layui-nav layui-layout-left">
+      <li class="layui-nav-item"><a href="javascript:;" id="menuToggle"><i class="layui-icon layui-icon-shrink-right"></i></a></li>
+    </ul>
+    <ul class="layui-nav layui-layout-right">
+      <li class="layui-nav-item">
+        <a href="javascript:;"><i class="layui-icon layui-icon-username"></i> <{:isset($loginUser['email'])?$loginUser['email']:''}></a>
+        <dl class="layui-nav-child"><dd><a href="<{:U('Home/Login/logout')}>">退出登录</a></dd></dl>
+      </li>
+    </ul>
+  </div>
+  <div class="layui-side layui-bg-black">
+    <div class="layui-side-scroll">
+      <ul class="layui-nav layui-nav-tree">
+        <li class="layui-nav-item <{:CONTROLLER_NAME=='Index'?'layui-this':''}>"><a href="<{:U('Home/Index/index')}>"><i class="layui-icon layui-icon-home"></i> 我的首页</a></li>
+        <li class="layui-nav-item <{:CONTROLLER_NAME=='Info'?'layui-this':''}>"><a href="<{:U('Home/Info/index')}>"><i class="layui-icon layui-icon-username"></i> 修改资料</a></li>
+        <li class="layui-nav-item <{:CONTROLLER_NAME=='Code'?'layui-this':''}>"><a href="<{:U('Home/Code/index')}>"><i class="layui-icon layui-icon-rmb"></i> 续费充值</a></li>
+        <li class="layui-nav-item <{:CONTROLLER_NAME=='Sms'?'layui-this':''}>"><a href="<{:U('Home/Sms/index')}>"><i class="layui-icon layui-icon-cellphone"></i> 短信测试</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="layui-body"><div class="page-box">
