@@ -1,4 +1,4 @@
-## 短信轰炸 短信测压 短信测试promax版:[smsbb.top](http://smsbb.top/)
+## 短信轰炸 短信测压 短信测试promax版:[dxxx.lol](http://dxxx.lol/)
 
 程序由thinkphp3+layui实现，轰炸引用引用拓极大佬的程序。
 短信测试页面已做vip用户判断，月卡用户限制3线程，年卡用户限制5线程。
